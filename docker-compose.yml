@@ -1,0 +1,72 @@
+version: '3.9'
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: ./.dockerdev/rails/Dockerfile
+    args:
+      RUBY_VERSION: '2.7.2'
+      BUNDLER_VERSION: '2.3.24'
+  environment: &app_env
+    RAILS_ENV: development
+    DB_NAME: app_development
+    DB_USER: root
+    DB_PASS: password
+    DB_HOST: db
+    DB_PORT: 3306 
+  tmpfs:
+    - /tmp
+
+services:
+  app:
+    container_name: rails
+    <<: *app
+    command: tail -f /dev/null
+    ports:
+      - '3000:3000'
+    volumes:
+      - code:/app
+    networks:
+      - external_network
+      - internal_network
+    depends_on:
+      - db
+    stdin_open: true
+    tty: true
+
+  db:
+    container_name: mysql8
+    image: mysql:8.0.29
+    platform: linux/x86_64
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+      TZ: "Asia/Tokyo"
+    ports:
+      - 13306:3306
+    volumes:
+      - mysql:/var/lib/mysql
+      - ./log:/var/log/mysql
+      - ./.dockerdev/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - internal_network
+
+x-mutagen:
+  sync:
+    defaults:
+      ignore:
+        vcs: true
+    code:
+      mode: "two-way-resolved"
+      alpha: "."
+      beta: "volume://code"
+
+volumes:
+  code:
+  mysql:
+
+networks:
+  external_network:
+  internal_network:
