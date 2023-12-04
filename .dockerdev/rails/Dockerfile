@@ -55,8 +55,7 @@ ENV PATH="${PATH}:${APP_ROOT}/bin:/opt/node/bin"
 
 WORKDIR ${APP_ROOT}
 
-RUN npm install -g npm@latest && \
-	npm install -g yarn && \
+RUN npm install -g yarn && \
   gem update --system  --no-document && \
   rm -f /usr/local/bin/ruby/gems/*/specifications/default/bundler-*.gemspec && \
   gem install bundler -v ${BUNDLER_VERSION} --no-document
